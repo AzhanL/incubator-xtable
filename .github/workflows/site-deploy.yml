@@ -19,7 +19,7 @@ name: Site Deploy
 on:
   push:
     branches:
-      - main
+      - dev
     paths:
       - '.github/workflows/site-deploy.yml'
       - 'website/**'
@@ -34,6 +34,9 @@ jobs:
     defaults:
       run:
         working-directory: website
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
 
@@ -47,14 +50,13 @@ jobs:
       - run: npm install --frozen-lockfile
       - run: npm run build
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        if: github.ref == 'refs/heads/main'
+      - name: Upload static files as artifact
+        uses: actions/upload-pages-artifact@v3 
         with:
-          personal_token: ${{ secrets.XTABLE_SITE_DEPLOY }}
-          external_repository: apache/incubator-xtable-site
-          keep_files: false
-          publish_branch: main
-          publish_dir: ./website/build
-          user_name: ${{ github.actor }}
-          user_email: ${{ github.actor }}@users.noreply.github.com
+          path: ./website/build
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  
